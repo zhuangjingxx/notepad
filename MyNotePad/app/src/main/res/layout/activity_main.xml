@@ -4,13 +4,9 @@
     android:id="@+id/activity_main"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:orientation="vertical"
+    tools:context="com.activity.MainActivity"
+    android:background="@drawable/timg4">
 
-    tools:context="com.activity.MainActivity">
 
-    <Button
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text="测试创建数据库"
-        android:id="@+id/btnTest"
-        android:textSize="25dp"/>
 </LinearLayout>

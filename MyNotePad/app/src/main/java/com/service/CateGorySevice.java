@@ -14,6 +14,7 @@ import java.util.List;
 
 /**
  * Created by 13410 on 2017/4/23.
+ * category的业务逻辑类，包含了对category各种操作的方法
  */
 
 public class CateGorySevice {
@@ -21,9 +22,9 @@ public class CateGorySevice {
     private CateGoryDao cateGoryDao;
     private Context context;
 
-    CateGorySevice(Context context){
+    public CateGorySevice(Context context){
         this.context=context;
-        cateGoryDao=new CateGoryDao(context)
+        cateGoryDao=new CateGoryDao(context);
     }
 
 

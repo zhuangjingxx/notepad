@@ -30,6 +30,8 @@ public class CateGoryDao {
         database=DataBaseUtil.getDataBase(context);
     }
 
+
+    //传入一个Category ，向数据库中插入条category记录
     public void add(Category category){
         ContentValues contentValues=new ContentValues();
         contentValues.put(DataBaseUtil.CATEGORIES_CATEGORYNAME,category.getCategoryName());
@@ -37,6 +39,7 @@ public class CateGoryDao {
         LogUtil.out("插入成功");
     }
 
+    //传入一个category 的id ,从数据库中删除一条category记录
     public void remove(Integer id){
         NotePadDao notePadDao=new NotePadDao(context);
         notePadDao.removeNotePadOfCategory(id);
@@ -44,6 +47,7 @@ public class CateGoryDao {
         LogUtil.out("删除成功");
     }
 
+    //传入一个list的id链表，批量删除category记录
     public void removeBatch(List<Integer> ids){
         Iterator<Integer> it=ids.iterator();
         String [] whereArgs=new String[ids.size()];
@@ -64,6 +68,7 @@ public class CateGoryDao {
               whereArgs  );
     }
 
+    //传入一个category 的id ,从数据库中得到一个category对象
     public Category get(Integer id){
         Category category=null;
         Cursor cursor=database.query(DataBaseUtil.TABLE_CATEGORIES,null,DataBaseUtil.CATEGORIES_ID+"=?",
@@ -83,6 +88,7 @@ public class CateGoryDao {
     }
 
 
+    //传入一个category,更新一条category记录
     public void update(Category category){
         ContentValues contentValues =new ContentValues();
         contentValues.put(DataBaseUtil.CATEGORIES_CATEGORYNAME,category.getCategoryName());
@@ -90,6 +96,8 @@ public class CateGoryDao {
                 DataBaseUtil.CATEGORIES_ID+"=?",new String[]{category.getId().toString()});
     }
 
+
+    //从数据库中得到所有的category,并以list封装起来
     public List<Category> getAllCategoryWithoutNotePad(){
         List<Category> categories=null;
         Cursor cursor=database.query(DataBaseUtil.TABLE_CATEGORIES,null,null,null,null,null,null);

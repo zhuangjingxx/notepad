@@ -1,46 +1,64 @@
 package com.activity;
 
-import android.support.v7.app.AppCompatActivity;
+import android.content.Intent;
 import android.os.Bundle;
-import android.view.View;
-import android.widget.Button;
-
-import com.dao.CateGoryDao;
-import com.dao.NotePadDao;
-import com.model.Category;
-import com.model.NotePad;
-import com.util.DateUtil;
-import com.util.LogUtil;
-
-import java.util.Date;
-import java.util.Iterator;
-import java.util.List;
+import android.support.v7.app.AppCompatActivity;
+import android.view.Window;
+import android.view.WindowManager;
+import android.view.animation.AlphaAnimation;
+import android.view.animation.Animation;
+import android.view.animation.AnimationSet;
+import android.widget.LinearLayout;
 
 public class MainActivity extends AppCompatActivity {
+
+    private LinearLayout linearLayout;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        this.requestWindowFeature(Window.FEATURE_NO_TITLE);//去掉标题栏
+        getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN,WindowManager.LayoutParams.FLAG_FULLSCREEN);
         setContentView(R.layout.activity_main);
-        Button btnTest=(Button)findViewById(R.id.btnTest);
-        btnTest.setOnClickListener(new View.OnClickListener() {
+
+
+        linearLayout =(LinearLayout)findViewById(R.id.activity_main);
+
+        initAnimtion();
+    }
+
+
+    private void initAnimtion() {
+        AnimationSet set = new AnimationSet(false);//动画集
+
+        AlphaAnimation ap = new AlphaAnimation(0.9f, 1.0f);//透明度
+        ap.setDuration(2000);//执行的时间
+        set.addAnimation(ap);
+        set.setStartOffset(1000);//延迟2秒开始动画
+        set.setFillAfter(true);//保持最后的效果
+        linearLayout.startAnimation(set);//开启动画
+
+        set.setAnimationListener(new Animation.AnimationListener() {
             @Override
-            public void onClick(View view) {
-                NotePadDao notePadDao=new NotePadDao(MainActivity.this);
-                CateGoryDao cateGoryDao=new CateGoryDao(MainActivity.this);
-                Category category=cateGoryDao.get(1);
-                LogUtil.out(category.getCategoryName());
-                List<NotePad> temp=category.getNotePads();
-                if(temp!=null){
-                    Iterator<NotePad> it=temp.iterator();
-                    while(it.hasNext()){
-                        LogUtil.out(it.next().getFirstLineOfContent());
-                    }
-                }
+            public void onAnimationStart(Animation animation) {
 
+            }
 
+            //动画结束后的跳转
+            @Override
+            public void onAnimationEnd(Animation animation) {
+                Intent intent = new Intent(MainActivity.this, UserActivity.class);
+                startActivity(intent);
+                finish();
+            }
+
+            @Override
+            public void onAnimationRepeat(Animation animation) {
 
             }
         });
+
     }
+
+
 }

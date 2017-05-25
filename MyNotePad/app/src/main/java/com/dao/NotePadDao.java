@@ -29,6 +29,7 @@ public class NotePadDao {
 
     //传入一个notePad对象和notePad的内容content,向数据库中插入一条notepad记录
     public void add(NotePad notePad,String content){
+        Log.i("test","dao  addnotepad.....");
         ContentValues contentValues=new ContentValues();
         contentValues.put(DataBaseUtil.NOTEPADS_CONTENT,content);
         contentValues.put(DataBaseUtil.NOTEPADS_TIME, DateUtil.DateToString(notePad.getBuildTime()));
@@ -40,8 +41,10 @@ public class NotePadDao {
 
     //传入一个notePad的id,从数据库中删除一条notePad记录
     public void remove(Integer id){
+        Log.i("test","1");
         database.delete(DataBaseUtil.TABLE_NOTEPADS,DataBaseUtil.NOTEPADS_ID+"=?",new String[]{id.toString()});
         LogUtil.out("删除成功");
+        Log.i("test","2");
     }
 
 
@@ -84,7 +87,7 @@ public class NotePadDao {
     public List<NotePad> getAll(Integer categoryId){
         List<NotePad> notePads=null;
         Cursor cursor=database.query(DataBaseUtil.TABLE_NOTEPADS,null,
-                DataBaseUtil.CATEGORIES_ID+"=?",new String[]{categoryId.toString()},null,null,null);
+                DataBaseUtil.NOTEPADS_CATEGORYID+"=?",new String[]{categoryId.toString()},null,null,null);
         if(cursor.moveToFirst()){
             notePads=new ArrayList<>();
             do{

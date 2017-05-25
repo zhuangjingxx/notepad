@@ -34,6 +34,7 @@ public class CateGorySevice {
 
     public boolean addACategory(String name){
         List<Category> temp=showAllCategory();
+        if(temp==null) return true;
         Iterator<Category> it=temp.iterator();
         while(it.hasNext()){
             if(it.next().getCategoryName().equals(name)){

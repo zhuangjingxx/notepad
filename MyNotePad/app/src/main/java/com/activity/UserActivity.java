@@ -47,7 +47,7 @@ public class UserActivity extends AppCompatActivity implements View.OnClickListe
         super.onCreate(savedInstanceState);
 
         setContentView(R.layout.activity_user);
-
+        inflater=LayoutInflater.from(UserActivity.this);
         cateGorySevice=new CateGorySevice(UserActivity.this);
         initActionBar();
         initData();
@@ -57,15 +57,21 @@ public class UserActivity extends AppCompatActivity implements View.OnClickListe
     }
 
 
-
+    @Override
+    protected void onResume() {
+        super.onResume();
+        initData();
+        adapter=new CategoryAdapter(inflater,list);
+        listView1.setAdapter(adapter);
+    }
 
     /*
-                 * 初始化数据
+                     * 初始化数据
 
-                 */
+                     */
     private void initData() {
        categoryList=cateGorySevice.showAllCategory();
-        for(int i=0;i<list.size();i++) list.remove(i);
+        list.clear();
         if(categoryList!=null) {
             for (int i = 0; i < categoryList.size(); i++) {
                 list.add(categoryList.get(i).getCategoryName());
@@ -84,7 +90,6 @@ public class UserActivity extends AppCompatActivity implements View.OnClickListe
         button1.setOnClickListener(this);
         button4.setOnClickListener(this);
         listView1 = (ListView) findViewById(R.id.listView1);
-        inflater=LayoutInflater.from(UserActivity.this);
         adapter = new CategoryAdapter(inflater, list);
         listView1.setAdapter(adapter);
         listView1.setOnItemClickListener(this);
@@ -118,6 +123,8 @@ public class UserActivity extends AppCompatActivity implements View.OnClickListe
                                                     .getIsSelectedMap().get(i);
                                             if (value) {
                                                 list.remove(i);
+                                                cateGorySevice.removeACategory(categoryList.get(i).getId());
+
                                                 adapter.getIsSelectedMap().put(i, false);
                                             }
                                             adapter.getIsvisibleMap().put(i,View.INVISIBLE);
@@ -126,6 +133,9 @@ public class UserActivity extends AppCompatActivity implements View.OnClickListe
                                         alertDialog.cancel();
                                         relativelayout1.setVisibility(View.GONE);
                                         isDeleteMode=false;
+                                        initData();
+                                        adapter=new CategoryAdapter(inflater,list);
+                                        listView1.setAdapter(adapter);
                                     }
                                 })
                         .setNegativeButton("取消",
@@ -149,12 +159,14 @@ public class UserActivity extends AppCompatActivity implements View.OnClickListe
     @Override
     public void onItemClick(AdapterView<?> arg0, View arg1, int arg2, long arg3) {
 
+
             if(isDeleteMode){
                 CategoryAdapter.ViewHolder holder= (CategoryAdapter.ViewHolder) arg1.getTag();
                 holder.checkBox.toggle();
                 adapter.getIsSelectedMap().put(arg2,true);
             }else{
                 Intent intent=new Intent(UserActivity.this,NotepadListActivity.class);
+                intent.putExtra("categoryId",categoryList.get(arg2).getId());
                 startActivity(intent);
             }
 
@@ -197,10 +209,11 @@ public class UserActivity extends AppCompatActivity implements View.OnClickListe
 
                 } else if(!cateGorySevice.addACategory(etContent.getText().toString().trim())){
                     txtHint.setText("类别已存在");
-
                 }
                 else{
-
+                    initData();
+                    adapter=new CategoryAdapter(inflater,list);
+                    listView1.setAdapter(adapter);
                     dialog.dismiss();
                 }
             }
@@ -224,13 +237,17 @@ public class UserActivity extends AppCompatActivity implements View.OnClickListe
 
     @Override
     public boolean onKeyDown(int keyCode, KeyEvent event) {
-        if(isDeleteMode==true){
-            for(int i=0;i<list.size();i++){
-                adapter.getIsvisibleMap().put(i,View.INVISIBLE);
-                adapter.getIsSelectedMap().put(i,false);
+        if(keyCode==KeyEvent.KEYCODE_BACK) {
+            if (isDeleteMode == true) {
+                for (int i = 0; i < list.size(); i++) {
+                    adapter.getIsvisibleMap().put(i, View.INVISIBLE);
+                    adapter.getIsSelectedMap().put(i, false);
+                }
+                relativelayout1.setVisibility(View.GONE);
+                adapter.notifyDataSetChanged();
+                isDeleteMode=false;
+                return false;
             }
-            relativelayout1.setVisibility(View.GONE);
-            return false;
         }
         return super.onKeyDown(keyCode, event);
     }

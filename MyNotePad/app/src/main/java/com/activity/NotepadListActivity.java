@@ -7,6 +7,7 @@ import android.support.v7.app.ActionBar;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.KeyEvent;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -19,6 +20,9 @@ import android.widget.RelativeLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.model.Category;
+import com.model.NotePad;
+import com.service.NotepadSevice;
 import com.view.CategoryAdapter;
 
 import java.util.ArrayList;
@@ -26,15 +30,22 @@ import java.util.List;
 
 public class NotepadListActivity extends AppCompatActivity implements View.OnClickListener,AdapterView.OnItemClickListener, AdapterView.OnItemLongClickListener{
 
-    private String TAG = "ListViewActivity";
+    public int  REQUEST_CODE=1;
+    private int categoryId;
+    public static  String DATA_KEY="data";
     private AlertDialog dialog=null;
     private int mode=0;//选择模式，0为阅读，1为编辑
     private LayoutInflater inflater;
     private boolean isDeleteMode=false;//是否处于删除模式
+    private int currentPosition=0;
+    private boolean isUpdated=false;
     private CategoryAdapter adapter;
     private Dialog alertDialog;
-    private List<String> list;
+    private NotepadSevice notepadSevice;
+    private List<NotePad> notePadList;
+    private List<String> list=new ArrayList<>();
     private RelativeLayout relativelayout1;
+    private ListView listView1;
 
 
     @Override
@@ -42,8 +53,11 @@ public class NotepadListActivity extends AppCompatActivity implements View.OnCli
         super.onCreate(savedInstanceState);
 
         setContentView(R.layout.activity_user);
-
-
+        Intent intent=getIntent();
+        categoryId=intent.getIntExtra("categoryId",0);
+        Log.i("test",categoryId+"");
+        inflater=LayoutInflater.from(NotepadListActivity.this);
+        notepadSevice=new NotepadSevice(NotepadListActivity.this);
         initActionBar();
         initData();
 
@@ -59,31 +73,21 @@ public class NotepadListActivity extends AppCompatActivity implements View.OnCli
         }
     }
 
-    public List<String> getList() {
-        return list;
-    }
 
-    public void setList(List<String> list) {
-        this.list = list;
-    }
 
     /*
          * 初始化数据
 
          */
     private void initData() {
-        list=new ArrayList<>();
-        inflater = getLayoutInflater();
-        list.add("篮球");
-        list.add("排球");
-        list.add("网球");
-        list.add("乒乓球");
-        list.add("足球");
-        list.add("橄榄球");
-        list.add("羽毛球");
-        list.add("桌球");
-        list.add("保龄球");
-        list.add("十");
+
+        notePadList=notepadSevice.showAllNotepadOfCategory(categoryId);
+        list.clear();
+        if(notePadList!=null) {
+            for (int i = 0; i < notePadList.size(); i++) {
+                list.add(notePadList.get(i).getFirstLineOfContent());
+            }
+        }
     }
 
     /*
@@ -95,7 +99,7 @@ public class NotepadListActivity extends AppCompatActivity implements View.OnCli
         relativelayout1 = (RelativeLayout) findViewById(R.id.relativelayout1);
         button1.setOnClickListener(this);
         button4.setOnClickListener(this);
-        ListView listView1 = (ListView) findViewById(R.id.listView1);
+        listView1 = (ListView) findViewById(R.id.listView1);
         adapter = new CategoryAdapter(inflater, list);
         listView1.setAdapter(adapter);
         listView1.setOnItemClickListener(this);
@@ -123,13 +127,16 @@ public class NotepadListActivity extends AppCompatActivity implements View.OnCli
                                 new DialogInterface.OnClickListener() {
                                     @Override
                                     public void onClick(DialogInterface arg0, int arg1) {
+                                        Log.i("test","1");
                                         int len = list.size();
                                         for (int i = len - 1; i >= 0; i--) {
-                                            Boolean value =adapter
-                                                    .getIsSelectedMap().get(i);
+                                            Boolean value =adapter.getIsSelectedMap().get(i);
+
                                             if (value) {
                                                 list.remove(i);
                                                 adapter.getIsSelectedMap().put(i, false);
+                                                notepadSevice.remove(notePadList.get(i).getId());
+
                                             }
                                             adapter.getIsvisibleMap().put(i,View.INVISIBLE);
                                         }
@@ -137,6 +144,9 @@ public class NotepadListActivity extends AppCompatActivity implements View.OnCli
                                         alertDialog.cancel();
                                         relativelayout1.setVisibility(View.GONE);
                                         isDeleteMode=false;
+                                        initData();
+                                        adapter=new CategoryAdapter(inflater,list);
+                                        listView1.setAdapter(adapter);
                                     }
                                 })
                         .setNegativeButton("取消",
@@ -165,7 +175,8 @@ public class NotepadListActivity extends AppCompatActivity implements View.OnCli
             holder.checkBox.toggle();
             adapter.getIsSelectedMap().put(arg2,true);
         }else{
-            showModechooseAlertDialog();
+            showModechooseAlertDialog(arg2);
+            currentPosition=arg2;
         }
 
     }
@@ -185,13 +196,20 @@ public class NotepadListActivity extends AppCompatActivity implements View.OnCli
 
     @Override
     public boolean onKeyDown(int keyCode, KeyEvent event) {
-        if(isDeleteMode==true){
-            for(int i=0;i<list.size();i++){
-                adapter.getIsvisibleMap().put(i,View.INVISIBLE);
-                adapter.getIsSelectedMap().put(i,false);
+        Log.i("test","onkeydown");
+        if(keyCode==KeyEvent.KEYCODE_BACK) {
+            Log.i("test","1");
+            if (isDeleteMode == true) {
+                Log.i("test","size:"+list.size());
+                for (int i = 0; i < list.size(); i++) {
+                    adapter.getIsvisibleMap().put(i, View.INVISIBLE);
+                    adapter.getIsSelectedMap().put(i, false);
+                }
+                relativelayout1.setVisibility(View.GONE);
+                adapter.notifyDataSetChanged();
+                isDeleteMode=false;
+                return false;
             }
-            relativelayout1.setVisibility(View.GONE);
-            return false;
         }
         return super.onKeyDown(keyCode, event);
     }
@@ -203,15 +221,17 @@ public class NotepadListActivity extends AppCompatActivity implements View.OnCli
         add.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
+                isUpdated=false;
                 Intent intent=new Intent(NotepadListActivity.this,MyEditText.class);
-                startActivity(intent);
+                startActivityForResult(intent,REQUEST_CODE);
             }
         });
         actionBar.setDisplayOptions(ActionBar.DISPLAY_SHOW_CUSTOM|ActionBar.DISPLAY_SHOW_HOME);
     }
 
 
-    private void showModechooseAlertDialog(){
+    //处理选择模式
+    private void showModechooseAlertDialog(final int position){
         dialog= new AlertDialog.Builder(this).create();
         dialog.setView(LayoutInflater.from(this).inflate(R.layout.modechoose_alertdialog_layout, null));
         dialog.show();
@@ -230,6 +250,7 @@ public class NotepadListActivity extends AppCompatActivity implements View.OnCli
 
                     case R.id.edit:
                         mode=1;
+                        isUpdated=true;
                         break;
                 }
 
@@ -242,10 +263,12 @@ public class NotepadListActivity extends AppCompatActivity implements View.OnCli
                 Intent intent=null;
                 if(mode==0){
                     intent=new Intent(NotepadListActivity.this,ReadActivity.class);
+                    intent.putExtra(DATA_KEY,notepadSevice.getContent(notePadList.get(position).getId()));
                     startActivity(intent);
                 }else{
                     intent=new Intent(NotepadListActivity.this,MyEditText.class);
-                    startActivity(intent);
+                    intent.putExtra(DATA_KEY,notepadSevice.getContent(notePadList.get(position).getId()));
+                    startActivityForResult(intent,REQUEST_CODE);
                 }
             }
         });
@@ -256,5 +279,17 @@ public class NotepadListActivity extends AppCompatActivity implements View.OnCli
                 dialog.dismiss();
             }
         });
+    }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+            if(isUpdated){
+                notepadSevice.update(notePadList.get(currentPosition),data.getStringExtra(MyEditText.DATA_KEY));
+            }else{
+                notepadSevice.addNotepad(categoryId,data.getStringExtra(MyEditText.DATA_KEY));
+            }
+            initData();
+            adapter=new CategoryAdapter(inflater,list);
+            listView1.setAdapter(adapter);
     }
 }

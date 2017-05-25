@@ -1,6 +1,7 @@
 package com.view;
 
 import android.content.Context;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -40,8 +41,8 @@ public class CategoryAdapter extends BaseAdapter {
     private static HashMap<Integer, Boolean> isSelectedMap;// 用来控制CheckBox的选中状况
     private static HashMap<Integer, Integer> isvisibleMap;// 用来控制CheckBox的显示状况
 
-    public CategoryAdapter(LayoutInflater inflater,
-                                             List<String> list) {
+    public CategoryAdapter(LayoutInflater inflater, List<String> list) {
+        Log.i("test","categoryadapter....");
         this.list = list;
         this.inflater = inflater;
         isSelectedMap = new HashMap<Integer, Boolean>();
